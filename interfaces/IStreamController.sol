@@ -1,9 +1,29 @@
 pragma solidity ^0.8.2;
 
-interface ISubscriptionHandler {
+interface IStreamController {
     // // // // // // // // // // // // // // // // // // // //
     // EVENTS
     // // // // // // // // // // // // // // // // // // // //
+
+    /**
+     * @notice Emitted when owner updates the stream token
+     * @param oldStreamToken Address of the old stream token
+     * @param newStreamToken Address of the new stream token
+     */
+    event UpdatedStreamToken(
+        address indexed oldStreamToken,
+        address indexed newStreamToken
+    );
+
+    /**
+     * @notice Emitted when owner updates the subscription handler
+     * @param oldSubscriptionHandler Address of the old subscription handler
+     * @param newSubscriptionHandler Address of the new subscription handler
+     */
+    event UpdatedSubscriptionHandler(
+        address indexed oldSubscriptionHandler,
+        address indexed newSubscriptionHandler
+    );
 
     /**
      * @notice Emitted when a streamer is registered
@@ -51,7 +71,7 @@ interface ISubscriptionHandler {
      * @notice Owner function to update the subscription handler contract reference
      * @param _newSubscriptionHandlerAddress Address of the new subscription contract
      */
-    function setSubscriptionHandler(address _newSubscriptionHandlerAddress)
+    function updateSubscriptionHandler(address _newSubscriptionHandlerAddress)
         external;
 
     // // // // // // // // // // // // // // // // // // // //

@@ -51,7 +51,9 @@ contract StreamController is Ownable, Pausable, IStreamController {
     // CONSTRUCTOR
     // // // // // // // // // // // // // // // // // // // //
 
-    constructor() {}
+    constructor(address _streamTokenAddress) {
+        _streamToken = ISuperfluidToken(_streamTokenAddress);
+    }
 
     // // // // // // // // // // // // // // // // // // // //
     // MODIFIERS
@@ -138,14 +140,35 @@ contract StreamController is Ownable, Pausable, IStreamController {
 
     /**
      * @notice Owner function to update the subscription handler contract reference
-     * @param _newSubscriptionHandlerAddress Address of the new subscription contract
+     * @param _newStreamTokenAddress Address of the new superfluid token
      */
-    function setSubscriptionHandler(address _newSubscriptionHandlerAddress)
+    function updateStreamToken(address _newStreamTokenAddress)
         external
-        whenNotPaused
         onlyOwner
     {
-        _subscriptionHandler = ISubscriptionHandler(_newSubscriptionHandler);
+        address oldStreamTokenAddress = _streamToken;
+        _streamToken = ISuperfluidToken(_newStreamTokenAddress);
+
+        emit UpdatedStreamToken(oldStreamTokenAddress, _newStreamTokenAddress);
+    }
+
+    /**
+     * @notice Owner function to update the subscription handler contract reference
+     * @param _newSubscriptionHandlerAddress Address of the new subscription contract
+     */
+    function updateSubscriptionHandler(address _newSubscriptionHandlerAddress)
+        external
+        onlyOwner
+    {
+        address oldSubscriptionHandlerAddress = _subscriptionHandler;
+        _subscriptionHandler = ISubscriptionHandler(
+            _newSubscriptionHandlerAddress
+        );
+
+        emit UpdatedSubscriptionHandler(
+            oldSubscriptionHandlerAddress,
+            _newSubscriptionHandlerAddress
+        );
     }
 
     // // // // // // // // // // // // // // // // // // // //
@@ -268,7 +291,7 @@ contract StreamController is Ownable, Pausable, IStreamController {
 
             // Delete current flow
             _subscriptionHandler.deleteSubscriptionFlow(
-                streamToken,
+                _streamToken,
                 // address fromAddress,
                 currentStreamWatcher,
                 // address toAddress
