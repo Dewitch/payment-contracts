@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.2;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -120,9 +121,8 @@ contract SubscriptionHandler is Ownable, Pausable, ISubscriptionHandler {
         whenNotPaused
     {
         cfaV1.authorizeFlowOperatorWithFullControl(
-            ISuperfluidToken(tokenAddress),
             address(this),
-            new bytes(0)
+            ISuperfluidToken(tokenAddress)
         );
 
         emit AuthorizedFullFlow(_msgSender(), address(this), tokenAddress);

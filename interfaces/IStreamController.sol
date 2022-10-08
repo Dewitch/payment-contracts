@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.2;
 
 interface IStreamController {
@@ -41,10 +42,12 @@ interface IStreamController {
      * @notice Emitted when a streamer has started a stream
      * @param streamerAddress Address of the streamer
      * @param numberOfStreams Total count of streams
+     * @param perSecondStreamRate Cost per second for this stream
      */
     event StreamStarted(
         address indexed streamerAddress,
-        uint256 indexed numberOfStreams
+        uint256 indexed numberOfStreams,
+        int96 indexed perSecondStreamRate
     );
 
     /**
@@ -107,7 +110,7 @@ interface IStreamController {
     /**
      * @notice View function to get the list streamers
      */
-    function streamers() external view returns (string[] memory);
+    function streamers() external view returns (address[] memory);
 
     // // // // // // // // // // // // // // // // // // // //
     // STREAMER FUNCTIONS
@@ -123,7 +126,8 @@ interface IStreamController {
      * @notice The function to call to begin a stream, can only have one stream at a time
      * @param streamId String of the stream
      */
-    function startStream(string memory streamId) external;
+    function startStream(string memory streamId, int96 perSecondStreamRate)
+        external;
 
     /**
      * @notice The function to call to end the active stream
@@ -138,7 +142,7 @@ interface IStreamController {
     /**
      * @notice The function to call to get back the currently cost of the active stream
      */
-    function getMyActiveStreamRate() external view returns (uint96);
+    function getMyActiveStreamRate() external view returns (int96);
 
     /**
      * @notice The function to call to get back all the watchers of the currently active stream

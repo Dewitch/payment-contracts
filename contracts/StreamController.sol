@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.2;
 
 import "@openzeppelin/contracts/security/Pausable.sol";
@@ -17,7 +18,7 @@ contract StreamController is Ownable, Pausable, IStreamController {
         address streamerAddress;
         bool isActive;
         bool isStreaming;
-        uint96 activeStreamFlowRate;
+        int96 activeStreamFlowRate;
         string streamerName;
         string activeStreamId;
     }
@@ -32,7 +33,7 @@ contract StreamController is Ownable, Pausable, IStreamController {
     // The token address that will be streamed
     address private _streamToken;
 
-    string[] private _streamers;
+    address[] private _streamers;
 
     // hash(streamerAddress, streamId) -> array of watchers
     mapping(bytes32 => address[]) internal _currentStreamWatchers;
@@ -45,7 +46,7 @@ contract StreamController is Ownable, Pausable, IStreamController {
     mapping(address => address[]) internal _streamerAddressToAllWatchers;
 
     // hash(streamerAddress, watcherAddress) -> array of stream ids
-    mapping(bytes32 => address[]) internal _streamerWatcherHistory;
+    mapping(bytes32 => string[]) internal _streamerWatcherHistory;
 
     // hash(streamerAddress, watcherAddress) -> boolean if the payment is currenly active
     mapping(bytes32 => bool) internal _isWatcherPaying;
@@ -150,6 +151,14 @@ contract StreamController is Ownable, Pausable, IStreamController {
         override
         onlyOwner
     {
+        _updateStreamToken(_newStreamTokenAddress);
+    }
+
+    /**
+     * @notice [INTERNAL] Owner function to update the stream token reference
+     * @param _newStreamTokenAddress Address of the new superfluid token
+     */
+    function _updateStreamToken(address _newStreamTokenAddress) internal {
         address oldStreamTokenAddress = _streamToken;
         _streamToken = _newStreamTokenAddress;
 
@@ -165,7 +174,17 @@ contract StreamController is Ownable, Pausable, IStreamController {
         override
         onlyOwner
     {
-        address oldSubscriptionHandlerAddress = _subscriptionHandler;
+        _updateSubscriptionHandler(_newSubscriptionHandlerAddress);
+    }
+
+    /**
+     * @notice [INTERNAL] Owner function to update the subscription handler contract reference
+     * @param _newSubscriptionHandlerAddress Address of the new subscription contract
+     */
+    function _updateSubscriptionHandler(address _newSubscriptionHandlerAddress)
+        internal
+    {
+        address oldSubscriptionHandlerAddress = address(_subscriptionHandler);
         _subscriptionHandler = ISubscriptionHandler(
             _newSubscriptionHandlerAddress
         );
@@ -188,7 +207,7 @@ contract StreamController is Ownable, Pausable, IStreamController {
         view
         override
         whenNotPaused
-        returns (string[] memory)
+        returns (address[] memory)
     {
         return _streamers;
     }
@@ -244,19 +263,14 @@ contract StreamController is Ownable, Pausable, IStreamController {
      * @notice The function to call to begin a stream, can only have one stream at a time
      * @param streamId String of the stream
      */
-    function startStream(string memory streamId)
+    function startStream(string memory streamId, int96 perSecondStreamRate)
         external
         override
         whenNotPaused
         onlyStreamer
         whenNotStreaming(_msgSender())
     {
-        _startStream(streamId);
-
-        emit StreamStarted(
-            _msgSender(),
-            specificStreamerMapObj.numberOfStreams
-        );
+        _startStream(streamId, perSecondStreamRate);
     }
 
     /**
@@ -278,6 +292,12 @@ contract StreamController is Ownable, Pausable, IStreamController {
         specificStreamerMapObj.numberOfStreams =
             specificStreamerMapObj.numberOfStreams +
             1;
+
+        emit StreamStarted(
+            _msgSender(),
+            specificStreamerMapObj.numberOfStreams,
+            perSecondStreamRate
+        );
     }
 
     /**
@@ -290,12 +310,7 @@ contract StreamController is Ownable, Pausable, IStreamController {
         onlyStreamer
         whenStreaming(_msgSender())
     {
-        address[] memory currentStreamWatchers = _getMyActiveStreamWatchers();
-        uint256 currentStreamWatcherCount = currentStreamWatchers.length;
-
         _endStream();
-
-        emit StreamEnded(_msgSender(), currentStreamWatcherCount);
     }
 
     /**
@@ -303,6 +318,7 @@ contract StreamController is Ownable, Pausable, IStreamController {
      */
     function _endStream() internal {
         address[] memory currentStreamWatchers = _getMyActiveStreamWatchers();
+        uint256 currentStreamWatcherCount = currentStreamWatchers.length;
 
         // Loop through all the current watchers and stop the stream
         for (uint256 i = 0; i < currentStreamWatcherCount; i++) {
@@ -320,6 +336,8 @@ contract StreamController is Ownable, Pausable, IStreamController {
         specificStreamerMapObj.isStreaming = false;
         specificStreamerMapObj.activeStreamId = "";
         specificStreamerMapObj.activeStreamFlowRate = 0;
+
+        emit StreamEnded(_msgSender(), currentStreamWatcherCount);
     }
 
     /**
@@ -347,7 +365,7 @@ contract StreamController is Ownable, Pausable, IStreamController {
         whenNotPaused
         onlyStreamer
         whenStreaming(_msgSender())
-        returns (uint96)
+        returns (int96)
     {
         return _getStreamerDetails(_msgSender()).activeStreamFlowRate;
     }
@@ -437,7 +455,7 @@ contract StreamController is Ownable, Pausable, IStreamController {
 
         // Check that the user isnt currently paying to watch this streamer
         require(
-            !_isWatcherPaying(streamerWatcherHash),
+            !_isWatcherPaying[streamerWatcherHash],
             "Already watching stream"
         );
 
@@ -475,7 +493,7 @@ contract StreamController is Ownable, Pausable, IStreamController {
         );
 
         // Update that the watcher is paying
-        _isWatcherPaying(streamerWatcherHash) = true;
+        _isWatcherPaying[streamerWatcherHash] = true;
 
         emit StartedWatchingStream(streamerAddress, watcherAddress);
 
@@ -554,7 +572,7 @@ contract StreamController is Ownable, Pausable, IStreamController {
 
         // Check that the user is currently paying to watch this streamer
         require(
-            _isWatcherPaying(streamerWatcherHash),
+            _isWatcherPaying[streamerWatcherHash],
             "Not paying for the stream"
         );
 
