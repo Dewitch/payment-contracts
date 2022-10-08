@@ -7,27 +7,40 @@ import {IConstantFlowAgreementV1} from "@superfluid-finance/ethereum-contracts/c
 import {CFAv1Library} from "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
 
 // Local interfaces
-import "./ISubscriptionHandler.sol";
+import "../interfaces/ISubscriptionHandler.sol";
 
 error Unauthorized();
 
 contract SubscriptionHandler is ISubscriptionHandler {
-    // ---------------------------------------------------------------------------------------------
-    // STATE VARIABLES
+    // // // // // // // // // // // // // // // // // // // //
+    // LIBRARIES AND STRUCTS
+    // // // // // // // // // // // // // // // // // // // //
 
-    /// @notice Owner.
-    address private _owner;
-
-    /// @notice Owner.
-    address private _controller;
-
-    /// @notice CFA Library.
+    /**
+     * @notice CFA Library.
+     */
     using CFAv1Library for CFAv1Library.InitData;
     CFAv1Library.InitData public cfaV1;
 
-    constructor(ISuperfluid host, address _newOwner) {
+    // // // // // // // // // // // // // // // // // // // //
+    // VARIABLES
+    // // // // // // // // // // // // // // // // // // // //
+
+    address private _owner;
+    address private _controller;
+
+    // // // // // // // // // // // // // // // // // // // //
+    // CONSTRUCTOR
+    // // // // // // // // // // // // // // // // // // // //
+
+    constructor(
+        ISuperfluid host,
+        address _newOwner,
+        address _newController
+    ) {
         assert(address(host) != address(0));
         _owner = _newOwner;
+        _controller = _newController;
 
         // Initialize CFA Library
         cfaV1 = CFAv1Library.InitData(
