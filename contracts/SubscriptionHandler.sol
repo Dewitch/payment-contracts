@@ -101,6 +101,14 @@ contract SubscriptionHandler is Ownable, Pausable, ISubscriptionHandler {
         override
         onlyOwner
     {
+        _changeController(_newController);
+    }
+
+    /**
+     * @notice [INTERNAL] Transfer controller address.
+     * @param _newController New controller account.
+     */
+    function _changeController(address _newController) internal {
         address _oldController = _controller;
         _controller = _newController;
 
@@ -120,6 +128,14 @@ contract SubscriptionHandler is Ownable, Pausable, ISubscriptionHandler {
         override
         whenNotPaused
     {
+        _authorizeFullFlow(tokenAddress);
+    }
+
+    /**
+     * @dev [INTERNAL] Allow the user to let the contract create inifinite streams of value on their behalf
+     * @param tokenAddress Super token address
+     */
+    function _authorizeFullFlow(address tokenAddress) internal {
         cfaV1.authorizeFlowOperatorWithFullControl(
             address(this),
             ISuperfluidToken(tokenAddress)
@@ -146,6 +162,23 @@ contract SubscriptionHandler is Ownable, Pausable, ISubscriptionHandler {
         address fromAddress,
         address toAddress
     ) external override whenNotPaused onlyControllerOrOwner {
+        _createSubscriptionFlow(tokenAddress, flowRate, fromAddress, toAddress);
+    }
+
+    /**
+     * @notice [INTERNAL] Create a stream into the streamer.
+     * @dev This requires the caller to be the controller contract
+     * @param tokenAddress Token to stream.
+     * @param flowRate Flow rate per second to stream.
+     * @param fromAddress The sending address of the stream.
+     * @param toAddress The receiving address of the stream.
+     */
+    function _createSubscriptionFlow(
+        address tokenAddress,
+        int96 flowRate,
+        address fromAddress,
+        address toAddress
+    ) internal {
         cfaV1.createFlowByOperator(
             fromAddress,
             toAddress,
@@ -172,6 +205,20 @@ contract SubscriptionHandler is Ownable, Pausable, ISubscriptionHandler {
         address fromAddress,
         address toAddress
     ) external override whenNotPaused onlyControllerOrOwner {
+        _deleteSubscriptionFlow(tokenAddress, fromAddress, toAddress);
+    }
+
+    /**
+     * @notice Delete a stream that the sender is sending
+     * @param tokenAddress Token address to quit streaming.
+     * @param fromAddress The sending address of the stream.
+     * @param toAddress The receiving address of the stream.
+     */
+    function _deleteSubscriptionFlow(
+        address tokenAddress,
+        address fromAddress,
+        address toAddress
+    ) internal {
         cfaV1.deleteFlow(
             fromAddress,
             toAddress,

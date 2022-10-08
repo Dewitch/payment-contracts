@@ -225,15 +225,14 @@ contract StreamController is Ownable, Pausable, IStreamController {
         override
         whenNotPaused
     {
-        _registerAsStream(streamerName);
-        emit RegisteredStreamer(_msgSender(), streamerName, streamerName);
+        _registerAsStreamer(streamerName);
     }
 
     /**
      * @notice [INTERNAL] The first function that streamers need to call to get started
      * @param streamerName String representation of what streamers want to be called
      */
-    function _registerAsStream(string memory streamerName) internal {
+    function _registerAsStreamer(string memory streamerName) internal {
         // Set up the storage struct
         SteamerDetailsMapObject
             storage specificStreamerMapObj = _streamerAddressToDetails[
@@ -257,6 +256,8 @@ contract StreamController is Ownable, Pausable, IStreamController {
 
         // Add the current user as a streamer
         _streamers.push(_msgSender());
+
+        emit RegisteredStreamer(_msgSender(), streamerName, streamerName);
     }
 
     /**
