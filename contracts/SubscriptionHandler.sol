@@ -95,7 +95,10 @@ contract SubscriptionHandler is ISubscriptionHandler {
         override
         onlyOwner(msg.sender)
     {
+        address _oldController = _controller;
         _controller = _newController;
+
+        emit ChangedController(msg.sender, _oldController, _newController);
     }
 
     /**
@@ -107,7 +110,10 @@ contract SubscriptionHandler is ISubscriptionHandler {
         override
         onlyOwner(msg.sender)
     {
+        address _oldOwner = _owner;
         _owner = _newOwner;
+
+        emit ChangedOwner(msg.sender, _oldOwner, _newOwner);
     }
 
     // // // // // // // // // // // // // // // // // // // //
@@ -118,16 +124,14 @@ contract SubscriptionHandler is ISubscriptionHandler {
      * @dev Allow the user to let the contract create inifinite streams of value on their behalf
      * @param token Super token address
      */
-    function authorizeFullFlow(ISuperfluidToken token)
-        external
-        override
-        onlyController(msg.sender)
-    {
+    function authorizeFullFlow(ISuperfluidToken token) external override {
         cfaV1.authorizeFlowOperatorWithFullControl(
             token,
             address(this),
             new bytes(0)
         );
+
+        emit AuthorizedFullFlow(msg.sender, address(this), token);
     }
 
     // // // // // // // // // // // // // // // // // // // //
@@ -149,6 +153,13 @@ contract SubscriptionHandler is ISubscriptionHandler {
         address toAddress
     ) external override onlyControllerOrOwner(msg.sender) {
         cfaV1.createFlowByOperator(fromAddress, toAddress, token, flowRate);
+        emit CreatedSubscriptionFlow(
+            msg.sender,
+            fromAddress,
+            toAddress,
+            token,
+            flowRate
+        );
     }
 
     /**
@@ -163,5 +174,6 @@ contract SubscriptionHandler is ISubscriptionHandler {
         address toAddress
     ) external override onlyControllerOrOwner(msg.sender) {
         cfaV1.deleteFlow(fromAddress, toAddress, token);
+        emit DeletedSubscriptionFlow(msg.sender, fromAddress, toAddress, token);
     }
 }

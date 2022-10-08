@@ -8,6 +8,71 @@ interface ISubscriptionHandler {
     // EVENTS
     // // // // // // // // // // // // // // // // // // // //
 
+    /**
+     * @notice Emitted when the controller address has been changed
+     * @param owner The owner address that made this change
+     * @param oldController The old controller address
+     * @param newController The new controller address
+     */
+    event ChangedController(
+        address indexed owner,
+        address indexed oldController,
+        address indexed newController
+    );
+
+    /**
+     * @notice Emitted when the owner address has been changed
+     * @param owner The owner address that made this change
+     * @param oldOwner The old owner address
+     * @param newOwner The new owner address
+     */
+    event ChangedOwner(
+        address indexed owner,
+        address indexed oldOwner,
+        address indexed newOwner
+    );
+
+    /**
+     * @notice Increase in the authorized flow rate of this contract for a given user
+     * @param user The user that wants to allow the contract to stream
+     * @param handler The contract that is allowed stream payment
+     * @param token The token to allow streaming
+     */
+    event AuthorizedFullFlow(
+        address indexed user,
+        address indexed handler,
+        address indexed token
+    );
+
+    /**
+     * @notice Emitted when a subscription has been created
+     * @param operator Controller or owner address that made the update
+     * @param fromAddress The address that the stream is coming from
+     * @param toAddress The address that the stream is going to
+     * @param token The token to start streaming
+     */
+    event CreatedSubscriptionFlow(
+        address operator,
+        address indexed fromAddress,
+        address indexed toAddress,
+        address indexed token,
+        int96 flowRate
+    );
+
+    /**
+     * @notice Emitted when a subscription has been deleted
+     * @param operator Controller or owner ddress that made the update
+     * @param fromAddress The address that the stream is coming from
+     * @param toAddress The address that the stream is going to
+     * @param token The token to stop streaming
+     */
+    event DeletedSubscriptionFlow(
+        address operator,
+        address indexed fromAddress,
+        address indexed toAddress,
+        address indexed token
+    );
+
     // // // // // // // // // // // // // // // // // // // //
     // VIEW FUNCTIONS
     // // // // // // // // // // // // // // // // // // // //
