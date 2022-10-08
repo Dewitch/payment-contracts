@@ -97,7 +97,7 @@ interface IStreamController {
      * @notice The first function that streamers need to call to get started
      * @param streamerName String representation of what streamers want to be called
      */
-    function registerAsStream(string memory streamerName) external;
+    function registerAsStreamer(string memory streamerName) external;
 
     /**
      * @notice The function to call to begin a stream, can only have one stream at a time

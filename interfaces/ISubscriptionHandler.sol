@@ -83,7 +83,7 @@ interface ISubscriptionHandler {
 
     /**
      * @dev Allow the user to let the contract create inifinite streams of value on their behalf
-     * @param token Super token address
+     * @param tokenAddress Super token address
      */
     function authorizeFullFlow(address tokenAddress) external;
 
@@ -94,7 +94,7 @@ interface ISubscriptionHandler {
     /**
      * @notice Create a flow to the streamer.
      * @dev This requires the caller to be the controller contract
-     * @param token Token to stream.
+     * @param tokenAddress Token to stream.
      * @param flowRate Flow rate per second to stream.
      * @param fromAddress The sending address of the stream.
      * @param toAddress The receiving address of the stream.
@@ -108,7 +108,7 @@ interface ISubscriptionHandler {
 
     /**
      * @notice Delete a stream that the sender is sending
-     * @param token Token to quit streaming.
+     * @param tokenAddress Token to quit streaming.
      * @param fromAddress The sending address of the stream.
      * @param toAddress The receiving address of the stream.
      */

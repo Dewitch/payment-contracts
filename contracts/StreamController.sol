@@ -200,7 +200,7 @@ contract StreamController is Ownable, Pausable, IStreamController {
      * @notice The first function that streamers need to call to get started
      * @param streamerName String representation of what streamers want to be called
      */
-    function registerAsStream(string memory streamerName)
+    function registerAsStreamer(string memory streamerName)
         external
         override
         whenNotPaused
@@ -389,4 +389,31 @@ contract StreamController is Ownable, Pausable, IStreamController {
     function _getMyWatchers() internal view returns (address[] memory) {
         return _streamerAddressToAllWatchers[_msgSender()];
     }
+
+    // // // // // // // // // // // // // // // // // // // //
+    // WATCHER FUNCTIONS
+    // // // // // // // // // // // // // // // // // // // //
+
+    /**
+     * @notice The function to call as a watcher to start payment and get back the currently active stream
+     * @param streamerAddress Address of the streamer to watch
+     */
+    function startWatchingStreamer(address streamerAddress)
+        external
+        returns (string memory);
+
+    /**
+     * @notice The function to call as a watcher to stop payment
+     * @param streamerAddress Address of the streamer to watch
+     */
+    function stopWatchingStreamer(address streamerAddress) external;
+
+    /**
+     * @notice The function to call as a watcher to get back the currently active stream
+     * @param streamerAddress Address of the streamer to watch
+     */
+    function getStreamId(address streamerAddress)
+        external
+        view
+        returns (string memory);
 }
