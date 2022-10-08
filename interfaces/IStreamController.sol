@@ -38,7 +38,7 @@ interface IStreamController {
     );
 
     /**
-     * @notice Emitted when a streamer is starting a stream
+     * @notice Emitted when a streamer has started a stream
      * @param streamerAddress Address of the streamer
      * @param numberOfStreams Total count of streams
      */
@@ -48,13 +48,33 @@ interface IStreamController {
     );
 
     /**
-     * @notice Emitted when a streamer is starting a stream
+     * @notice Emitted when a streamer has ended a stream
      * @param streamerAddress Address of the streamer
      * @param numberOfWatchers Total count of watchers on the stream
      */
     event StreamEnded(
         address indexed streamerAddress,
         uint256 indexed numberOfWatchers
+    );
+
+    /**
+     * @notice Emitted when a watcher has started watching a stream
+     * @param streamerAddress Address of the streamer
+     * @param watcherAddress Address of the watcher
+     */
+    event StartedWatchingStream(
+        address indexed streamerAddress,
+        address indexed watcherAddress
+    );
+
+    /**
+     * @notice Emitted when a watcher has stopped watching a stream
+     * @param streamerAddress Address of the streamer
+     * @param watcherAddress Address of the watcher
+     */
+    event StoppedWatchingStream(
+        address indexed streamerAddress,
+        address indexed watcherAddress
     );
 
     // // // // // // // // // // // // // // // // // // // //
@@ -116,6 +136,11 @@ interface IStreamController {
     function getMyActiveStream() external view returns (string memory);
 
     /**
+     * @notice The function to call to get back the currently cost of the active stream
+     */
+    function getMyActiveStreamRate() external view returns (uint96);
+
+    /**
      * @notice The function to call to get back all the watchers of the currently active stream
      */
     function getMyActiveStreamWatchers()
@@ -135,6 +160,7 @@ interface IStreamController {
     /**
      * @notice The function to call as a watcher to start payment and get back the currently active stream
      * @param streamerAddress Address of the streamer to watch
+     * @return streamId
      */
     function startWatchingStreamer(address streamerAddress)
         external
@@ -149,8 +175,9 @@ interface IStreamController {
     /**
      * @notice The function to call as a watcher to get back the currently active stream
      * @param streamerAddress Address of the streamer to watch
+     * @return streamId
      */
-    function getStreamId(address streamerAddress)
+    function getWatcherStreamId(address streamerAddress)
         external
         view
         returns (string memory);
