@@ -5,9 +5,47 @@ interface ISubscriptionHandler {
     // EVENTS
     // // // // // // // // // // // // // // // // // // // //
 
+    /**
+     * @notice Emitted when a streamer is registered
+     * @param streamerAddress Address of the streamer
+     * @param streamerNameHash Indexed streamer name
+     * @param streamerName The string representation of the streamer name
+     */
+    event RegisteredStreamer(
+        address indexed streamerAddress,
+        string indexed streamerNameHash,
+        string streamerName
+    );
+
+    /**
+     * @notice Emitted when a streamer is starting a stream
+     * @param streamerAddress Address of the streamer
+     * @param numberOfStreams Total count of streams
+     */
+    event StreamStarted(
+        address indexed streamerAddress,
+        uint256 indexed numberOfStreams
+    );
+
+    /**
+     * @notice Emitted when a streamer is starting a stream
+     * @param streamerAddress Address of the streamer
+     * @param numberOfWatchers Total count of watchers on the stream
+     */
+    event StreamEnded(
+        address indexed streamerAddress,
+        uint256 indexed numberOfWatchers
+    );
+
     // // // // // // // // // // // // // // // // // // // //
     // OWNER FUNCTIONS
     // // // // // // // // // // // // // // // // // // // //
+
+    /**
+     * @notice Pause this contract
+     * @param val Pause state to set
+     */
+    function pause(bool val) external;
 
     /**
      * @notice Owner function to update the subscription handler contract reference

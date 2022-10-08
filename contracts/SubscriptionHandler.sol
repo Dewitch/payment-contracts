@@ -1,5 +1,7 @@
 pragma solidity ^0.8.2;
 
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {ISuperfluid, ISuperToken, ISuperApp} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 import {ISuperfluidToken} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluidToken.sol";
@@ -9,9 +11,7 @@ import {CFAv1Library} from "@superfluid-finance/ethereum-contracts/contracts/app
 // Local interfaces
 import "../interfaces/ISubscriptionHandler.sol";
 
-error Unauthorized();
-
-contract SubscriptionHandler is ISubscriptionHandler {
+contract SubscriptionHandler is Ownable, Pausable, ISubscriptionHandler {
     // // // // // // // // // // // // // // // // // // // //
     // LIBRARIES AND STRUCTS
     // // // // // // // // // // // // // // // // // // // //
@@ -26,20 +26,14 @@ contract SubscriptionHandler is ISubscriptionHandler {
     // VARIABLES
     // // // // // // // // // // // // // // // // // // // //
 
-    address private _owner;
     address private _controller;
 
     // // // // // // // // // // // // // // // // // // // //
     // CONSTRUCTOR
     // // // // // // // // // // // // // // // // // // // //
 
-    constructor(
-        ISuperfluid host,
-        address _newOwner,
-        address _newController
-    ) {
+    constructor(ISuperfluid host, address _newController) {
         assert(address(host) != address(0));
-        _owner = _newOwner;
         _controller = _newController;
 
         // Initialize CFA Library
@@ -61,19 +55,11 @@ contract SubscriptionHandler is ISubscriptionHandler {
     // MODIFIERS
     // // // // // // // // // // // // // // // // // // // //
 
-    modifier onlyController(address msgSender) {
-        if (msgSender != _controller) revert Unauthorized();
-        _;
-    }
-
-    modifier onlyControllerOrOwner(address msgSender) {
-        if (msgSender != _controller && msgSender != _owner)
-            revert Unauthorized();
-        _;
-    }
-
-    modifier onlyOwner(address msgSender) {
-        if (msgSender != _owner) revert Unauthorized();
+    modifier onlyControllerOrOwner() {
+        require(
+            _msgSender() != _controller && _msgSender() != owner(),
+            "Must be a controller or owner"
+        );
         _;
     }
 
@@ -88,16 +74,21 @@ contract SubscriptionHandler is ISubscriptionHandler {
         return _controller;
     }
 
-    /**
-     * @notice View owner function.
-     */
-    function owner() external view override returns (address) {
-        return _owner;
-    }
-
     // // // // // // // // // // // // // // // // // // // //
     // OWNER FUNCTIONS
     // // // // // // // // // // // // // // // // // // // //
+
+    /**
+     * @notice Pause this contract
+     * @param val Pause state to set
+     */
+    function pause(bool val) public onlyOwner {
+        if (val == true) {
+            _pause();
+            return;
+        }
+        _unpause();
+    }
 
     /**
      * @notice Transfer controller address.
@@ -106,27 +97,12 @@ contract SubscriptionHandler is ISubscriptionHandler {
     function changeController(address _newController)
         external
         override
-        onlyOwner(msg.sender)
+        onlyOwner
     {
         address _oldController = _controller;
         _controller = _newController;
 
-        emit ChangedController(msg.sender, _oldController, _newController);
-    }
-
-    /**
-     * @notice Transfer ownership.
-     * @param _newOwner New owner account.
-     */
-    function changeOwner(address _newOwner)
-        external
-        override
-        onlyOwner(msg.sender)
-    {
-        address _oldOwner = _owner;
-        _owner = _newOwner;
-
-        emit ChangedOwner(msg.sender, _oldOwner, _newOwner);
+        emit ChangedController(_msgSender(), _oldController, _newController);
     }
 
     // // // // // // // // // // // // // // // // // // // //
@@ -137,14 +113,18 @@ contract SubscriptionHandler is ISubscriptionHandler {
      * @dev Allow the user to let the contract create inifinite streams of value on their behalf
      * @param token Super token address
      */
-    function authorizeFullFlow(ISuperfluidToken token) external override {
+    function authorizeFullFlow(ISuperfluidToken token)
+        external
+        override
+        whenNotPaused
+    {
         cfaV1.authorizeFlowOperatorWithFullControl(
             token,
             address(this),
             new bytes(0)
         );
 
-        emit AuthorizedFullFlow(msg.sender, address(this), token);
+        emit AuthorizedFullFlow(_msgSender(), address(this), token);
     }
 
     // // // // // // // // // // // // // // // // // // // //
@@ -164,10 +144,10 @@ contract SubscriptionHandler is ISubscriptionHandler {
         int96 flowRate,
         address fromAddress,
         address toAddress
-    ) external override onlyControllerOrOwner(msg.sender) {
+    ) external override whenNotPaused onlyControllerOrOwner {
         cfaV1.createFlowByOperator(fromAddress, toAddress, token, flowRate);
         emit CreatedSubscriptionFlow(
-            msg.sender,
+            _msgSender(),
             fromAddress,
             toAddress,
             token,
@@ -185,8 +165,13 @@ contract SubscriptionHandler is ISubscriptionHandler {
         ISuperfluidToken token,
         address fromAddress,
         address toAddress
-    ) external override onlyControllerOrOwner(msg.sender) {
+    ) external override whenNotPaused onlyControllerOrOwner {
         cfaV1.deleteFlow(fromAddress, toAddress, token);
-        emit DeletedSubscriptionFlow(msg.sender, fromAddress, toAddress, token);
+        emit DeletedSubscriptionFlow(
+            _msgSender(),
+            fromAddress,
+            toAddress,
+            token
+        );
     }
 }

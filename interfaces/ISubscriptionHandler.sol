@@ -21,18 +21,6 @@ interface ISubscriptionHandler {
     );
 
     /**
-     * @notice Emitted when the owner address has been changed
-     * @param owner The owner address that made this change
-     * @param oldOwner The old owner address
-     * @param newOwner The new owner address
-     */
-    event ChangedOwner(
-        address indexed owner,
-        address indexed oldOwner,
-        address indexed newOwner
-    );
-
-    /**
      * @notice Increase in the authorized flow rate of this contract for a given user
      * @param user The user that wants to allow the contract to stream
      * @param handler The contract that is allowed stream payment
@@ -82,11 +70,6 @@ interface ISubscriptionHandler {
      */
     function controller() external view returns (address);
 
-    /**
-     * @notice View owner function.
-     */
-    function owner() external view returns (address);
-
     // // // // // // // // // // // // // // // // // // // //
     // OWNER FUNCTIONS
     // // // // // // // // // // // // // // // // // // // //
@@ -96,12 +79,6 @@ interface ISubscriptionHandler {
      * @param _newController New controller account.
      */
     function changeController(address _newController) external;
-
-    /**
-     * @notice Transfer ownership.
-     * @param _newOwner New owner account.
-     */
-    function changeOwner(address _newOwner) external;
 
     // // // // // // // // // // // // // // // // // // // //
     // CONTROLLER FUNCTIONS
