@@ -3,6 +3,7 @@ pragma solidity ^0.8.2;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+
 import {ISuperfluid, ISuperToken, ISuperApp} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 import {ISuperfluidToken} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluidToken.sol";
 import {IConstantFlowAgreementV1} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
@@ -111,20 +112,20 @@ contract SubscriptionHandler is Ownable, Pausable, ISubscriptionHandler {
 
     /**
      * @dev Allow the user to let the contract create inifinite streams of value on their behalf
-     * @param token Super token address
+     * @param tokenAddress Super token address
      */
-    function authorizeFullFlow(ISuperfluidToken token)
+    function authorizeFullFlow(address tokenAddress)
         external
         override
         whenNotPaused
     {
         cfaV1.authorizeFlowOperatorWithFullControl(
-            token,
+            ISuperfluidToken(tokenAddress),
             address(this),
             new bytes(0)
         );
 
-        emit AuthorizedFullFlow(_msgSender(), address(this), token);
+        emit AuthorizedFullFlow(_msgSender(), address(this), tokenAddress);
     }
 
     // // // // // // // // // // // // // // // // // // // //
@@ -134,44 +135,53 @@ contract SubscriptionHandler is Ownable, Pausable, ISubscriptionHandler {
     /**
      * @notice Create a stream into the streamer.
      * @dev This requires the caller to be the controller contract
-     * @param token Token to stream.
+     * @param tokenAddress Token to stream.
      * @param flowRate Flow rate per second to stream.
      * @param fromAddress The sending address of the stream.
      * @param toAddress The receiving address of the stream.
      */
     function createSubscriptionFlow(
-        ISuperfluidToken token,
+        address tokenAddress,
         int96 flowRate,
         address fromAddress,
         address toAddress
     ) external override whenNotPaused onlyControllerOrOwner {
-        cfaV1.createFlowByOperator(fromAddress, toAddress, token, flowRate);
+        cfaV1.createFlowByOperator(
+            fromAddress,
+            toAddress,
+            ISuperfluidToken(tokenAddress),
+            flowRate
+        );
         emit CreatedSubscriptionFlow(
             _msgSender(),
             fromAddress,
             toAddress,
-            token,
+            tokenAddress,
             flowRate
         );
     }
 
     /**
      * @notice Delete a stream that the sender is sending
-     * @param token Token to quit streaming.
+     * @param tokenAddress Token address to quit streaming.
      * @param fromAddress The sending address of the stream.
      * @param toAddress The receiving address of the stream.
      */
     function deleteSubscriptionFlow(
-        ISuperfluidToken token,
+        address tokenAddress,
         address fromAddress,
         address toAddress
     ) external override whenNotPaused onlyControllerOrOwner {
-        cfaV1.deleteFlow(fromAddress, toAddress, token);
+        cfaV1.deleteFlow(
+            fromAddress,
+            toAddress,
+            ISuperfluidToken(tokenAddress)
+        );
         emit DeletedSubscriptionFlow(
             _msgSender(),
             fromAddress,
             toAddress,
-            token
+            tokenAddress
         );
     }
 }

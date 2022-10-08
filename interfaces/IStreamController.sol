@@ -68,6 +68,12 @@ interface IStreamController {
     function pause(bool val) external;
 
     /**
+     * @notice Owner function to update the stream token reference
+     * @param _newStreamTokenAddress Address of the new superfluid token
+     */
+    function updateStreamToken(address _newStreamTokenAddress) external;
+
+    /**
      * @notice Owner function to update the subscription handler contract reference
      * @param _newSubscriptionHandlerAddress Address of the new subscription contract
      */
@@ -108,6 +114,19 @@ interface IStreamController {
      * @notice The function to call to get back the currently active stream
      */
     function getMyActiveStream() external view returns (string memory);
+
+    /**
+     * @notice The function to call to get back all the watchers of the currently active stream
+     */
+    function getMyActiveStreamWatchers()
+        external
+        view
+        returns (address[] memory);
+
+    /**
+     * @notice The function to call to get back all the watchers
+     */
+    function getMyWatchers() external view returns (address[] memory);
 
     // // // // // // // // // // // // // // // // // // // //
     // WATCHER FUNCTIONS

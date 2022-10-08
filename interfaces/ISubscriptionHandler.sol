@@ -1,8 +1,5 @@
 pragma solidity ^0.8.2;
 
-import {ISuperfluid, ISuperToken, ISuperApp} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
-import {ISuperfluidToken} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluidToken.sol";
-
 interface ISubscriptionHandler {
     // // // // // // // // // // // // // // // // // // // //
     // EVENTS
@@ -88,7 +85,7 @@ interface ISubscriptionHandler {
      * @dev Allow the user to let the contract create inifinite streams of value on their behalf
      * @param token Super token address
      */
-    function authorizeFullFlow(ISuperfluidToken token) external;
+    function authorizeFullFlow(address tokenAddress) external;
 
     // // // // // // // // // // // // // // // // // // // //
     // BASE FUNCTIONS
@@ -103,7 +100,7 @@ interface ISubscriptionHandler {
      * @param toAddress The receiving address of the stream.
      */
     function createSubscriptionFlow(
-        ISuperfluidToken token,
+        address tokenAddress,
         int96 flowRate,
         address fromAddress,
         address toAddress
@@ -116,7 +113,7 @@ interface ISubscriptionHandler {
      * @param toAddress The receiving address of the stream.
      */
     function deleteSubscriptionFlow(
-        ISuperfluidToken token,
+        address tokenAddress,
         address fromAddress,
         address toAddress
     ) external;

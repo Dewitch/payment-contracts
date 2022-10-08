@@ -1,11 +1,11 @@
 pragma solidity ^0.8.2;
 
+import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
 // Local interfaces
 import "../interfaces/IStreamController.sol";
 import "../interfaces/ISubscriptionHandler.sol";
-
-import "@openzeppelin/contracts/security/Pausable.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract StreamController is Ownable, Pausable, IStreamController {
     // // // // // // // // // // // // // // // // // // // //
@@ -28,8 +28,10 @@ contract StreamController is Ownable, Pausable, IStreamController {
     // Contract to handle subscriptions
     ISubscriptionHandler private _subscriptionHandler;
 
+    // The token address that will be streamed
+    address private _streamToken;
+
     string[] private _streamers;
-    ISuperfluidToken _streamToken;
 
     // hash(streamerAddress, streamId) -> array of watchers
     mapping(bytes32 => address[]) internal _currentStreamWatchers;
@@ -52,7 +54,7 @@ contract StreamController is Ownable, Pausable, IStreamController {
     // // // // // // // // // // // // // // // // // // // //
 
     constructor(address _streamTokenAddress) {
-        _streamToken = ISuperfluidToken(_streamTokenAddress);
+        _streamToken = _streamTokenAddress;
     }
 
     // // // // // // // // // // // // // // // // // // // //
@@ -130,7 +132,7 @@ contract StreamController is Ownable, Pausable, IStreamController {
      * @notice Pause this contract
      * @param val Pause state to set
      */
-    function pause(bool val) external onlyOwner {
+    function pause(bool val) external override onlyOwner {
         if (val == true) {
             _pause();
             return;
@@ -139,15 +141,16 @@ contract StreamController is Ownable, Pausable, IStreamController {
     }
 
     /**
-     * @notice Owner function to update the subscription handler contract reference
+     * @notice Owner function to update the stream token reference
      * @param _newStreamTokenAddress Address of the new superfluid token
      */
     function updateStreamToken(address _newStreamTokenAddress)
         external
+        override
         onlyOwner
     {
         address oldStreamTokenAddress = _streamToken;
-        _streamToken = ISuperfluidToken(_newStreamTokenAddress);
+        _streamToken = _newStreamTokenAddress;
 
         emit UpdatedStreamToken(oldStreamTokenAddress, _newStreamTokenAddress);
     }
@@ -158,6 +161,7 @@ contract StreamController is Ownable, Pausable, IStreamController {
      */
     function updateSubscriptionHandler(address _newSubscriptionHandlerAddress)
         external
+        override
         onlyOwner
     {
         address oldSubscriptionHandlerAddress = _subscriptionHandler;
@@ -178,7 +182,13 @@ contract StreamController is Ownable, Pausable, IStreamController {
     /**
      * @notice View function to get the list streamers
      */
-    function streamers() external view whenNotPaused returns (string[] memory) {
+    function streamers()
+        external
+        view
+        override
+        whenNotPaused
+        returns (string[] memory)
+    {
         return _streamers;
     }
 
@@ -192,6 +202,7 @@ contract StreamController is Ownable, Pausable, IStreamController {
      */
     function registerAsStream(string memory streamerName)
         external
+        override
         whenNotPaused
     {
         _registerAsStream(streamerName);
@@ -232,6 +243,7 @@ contract StreamController is Ownable, Pausable, IStreamController {
      */
     function startStream(string memory streamId)
         external
+        override
         whenNotPaused
         onlyStreamer
         whenNotStreaming(_msgSender())
@@ -267,6 +279,7 @@ contract StreamController is Ownable, Pausable, IStreamController {
      */
     function endStream()
         external
+        override
         whenNotPaused
         onlyStreamer
         whenStreaming(_msgSender())
@@ -320,6 +333,7 @@ contract StreamController is Ownable, Pausable, IStreamController {
     function getMyActiveStream()
         external
         view
+        override
         whenNotPaused
         onlyStreamer
         whenStreaming(_msgSender())
@@ -334,6 +348,7 @@ contract StreamController is Ownable, Pausable, IStreamController {
     function getMyActiveStreamWatchers()
         external
         view
+        override
         whenNotPaused
         onlyStreamer
         whenStreaming(_msgSender())
@@ -359,6 +374,7 @@ contract StreamController is Ownable, Pausable, IStreamController {
     function getMyWatchers()
         external
         view
+        override
         whenNotPaused
         onlyStreamer
         whenStreaming(_msgSender())
