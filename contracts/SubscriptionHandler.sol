@@ -46,7 +46,7 @@ contract SubscriptionHandler is Ownable, Pausable, ISubscriptionHandler {
 
     modifier onlyControllerOrOwner() {
         require(
-            _msgSender() != _controller && _msgSender() != owner(),
+            _msgSender() == _controller || _msgSender() == owner(),
             "Must be a controller or owner"
         );
         _;

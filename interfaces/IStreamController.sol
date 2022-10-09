@@ -44,6 +44,7 @@ interface IStreamController {
      */
     event RegisteredStreamer(
         address indexed streamerAddress,
+        address indexed streamerSocialTokenAddress,
         string indexed streamerNameHash,
         string streamerName
     );
@@ -203,6 +204,15 @@ interface IStreamController {
      * @notice The function to call to get back all the watchers
      */
     function getMyWatchers() external view returns (address[] memory);
+
+    /**
+     * @notice The function to get the streamer's token
+     * @param streamerAddress Address of the streamer to watch
+     */
+    function getStreamerToken(address streamerAddress)
+        external
+        view
+        returns (address);
 
     // // // // // // // // // // // // // // // // // // // //
     // WATCHER FUNCTIONS

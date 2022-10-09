@@ -358,7 +358,12 @@ contract StreamController is Ownable, Pausable, IStreamController {
         // Add the current user as a streamer
         _streamers.push(_msgSender());
 
-        emit RegisteredStreamer(_msgSender(), streamerName, streamerName);
+        emit RegisteredStreamer(
+            _msgSender(),
+            address(superSocialToken),
+            streamerName,
+            streamerName
+        );
     }
 
     /**
@@ -545,6 +550,20 @@ contract StreamController is Ownable, Pausable, IStreamController {
      */
     function _getMyWatchers() internal view returns (address[] memory) {
         return _streamerAddressToAllWatchers[_msgSender()];
+    }
+
+    /**
+     * @notice The function to get the streamer's token
+     * @param streamerAddress Address of the streamer to watch
+     */
+    function getStreamerToken(address streamerAddress)
+        external
+        view
+        override
+        whenNotPaused
+        returns (address)
+    {
+        return _getStreamerDetails(streamerAddress).socialTokenAddress;
     }
 
     // // // // // // // // // // // // // // // // // // // //
