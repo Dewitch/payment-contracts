@@ -209,10 +209,46 @@ interface IStreamController {
      * @notice The function to get the streamer's token
      * @param streamerAddress Address of the streamer to watch
      */
-    function getStreamerToken(address streamerAddress)
+    function getStreamerSocialToken(address streamerAddress)
         external
         view
         returns (address);
+
+    /**
+     * @notice The function to get if the steamer is active
+     * @param streamerAddress Address of the streamer to watch
+     */
+    function getStreamerIsActive(address streamerAddress)
+        external
+        view
+        returns (bool);
+
+    /**
+     * @notice The function to get if the steamer is streaming
+     * @param streamerAddress Address of the streamer to watch
+     */
+    function getStreamerIsStreaming(address streamerAddress)
+        external
+        view
+        returns (bool);
+
+    /**
+     * @notice The function to the name of streamer
+     * @param streamerAddress Address of the streamer to watch
+     */
+    function getStreamerName(address streamerAddress)
+        external
+        view
+        returns (string memory);
+
+    /**
+     * @notice The function to the number of steams
+     * @param streamerAddress Address of the streamer to watch
+     */
+    function getStreamerNumberOfStreams(address streamerAddress)
+        external
+        view
+        returns (uint256);
 
     // // // // // // // // // // // // // // // // // // // //
     // WATCHER FUNCTIONS

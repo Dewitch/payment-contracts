@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity ^0.8.0;
 
-import {SuperTokenBase} from "./base/SuperTokenBase.sol";
+import {SuperTokenBase} from "./SuperTokenBase.sol";
 
 /// @title Burnable and Mintable Pure Super Token
 /// @notice This does not perform checks when burning

@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 // Local interfaces
-import "./SuperSocialToken.sol";
+import "./social/SuperSocialToken.sol";
 import "../interfaces/IStreamController.sol";
 import "../interfaces/ISubscriptionHandler.sol";
 
@@ -556,7 +556,7 @@ contract StreamController is Ownable, Pausable, IStreamController {
      * @notice The function to get the streamer's token
      * @param streamerAddress Address of the streamer to watch
      */
-    function getStreamerToken(address streamerAddress)
+    function getStreamerSocialToken(address streamerAddress)
         external
         view
         override
@@ -564,6 +564,62 @@ contract StreamController is Ownable, Pausable, IStreamController {
         returns (address)
     {
         return _getStreamerDetails(streamerAddress).socialTokenAddress;
+    }
+
+    /**
+     * @notice The function to get if the steamer is active
+     * @param streamerAddress Address of the streamer to watch
+     */
+    function getStreamerIsActive(address streamerAddress)
+        external
+        view
+        override
+        whenNotPaused
+        returns (bool)
+    {
+        return _getStreamerDetails(streamerAddress).isActive;
+    }
+
+    /**
+     * @notice The function to get if the steamer is streaming
+     * @param streamerAddress Address of the streamer to watch
+     */
+    function getStreamerIsStreaming(address streamerAddress)
+        external
+        view
+        override
+        whenNotPaused
+        returns (bool)
+    {
+        return _getStreamerDetails(streamerAddress).isStreaming;
+    }
+
+    /**
+     * @notice The function to the name of streamer
+     * @param streamerAddress Address of the streamer to watch
+     */
+    function getStreamerName(address streamerAddress)
+        external
+        view
+        override
+        whenNotPaused
+        returns (string memory)
+    {
+        return _getStreamerDetails(streamerAddress).streamerName;
+    }
+
+    /**
+     * @notice The function to the number of steams
+     * @param streamerAddress Address of the streamer to watch
+     */
+    function getStreamerNumberOfStreams(address streamerAddress)
+        external
+        view
+        override
+        whenNotPaused
+        returns (uint256)
+    {
+        return _getStreamerDetails(streamerAddress).numberOfStreams;
     }
 
     // // // // // // // // // // // // // // // // // // // //
