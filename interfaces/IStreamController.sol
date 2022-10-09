@@ -17,6 +17,16 @@ interface IStreamController {
     );
 
     /**
+     * @notice Emitted when owner updates the super token factory
+     * @param oldSuperTokenFactory Address of the old super token factory
+     * @param newSuperTokenFactory Address of the new super token factory
+     */
+    event UpdatedSuperTokenFactory(
+        address indexed oldSuperTokenFactory,
+        address indexed newSuperTokenFactory
+    );
+
+    /**
      * @notice Emitted when owner updates the subscription handler
      * @param oldSubscriptionHandler Address of the old subscription handler
      * @param newSubscriptionHandler Address of the new subscription handler
@@ -97,6 +107,12 @@ interface IStreamController {
     function updateStreamToken(address _newStreamTokenAddress) external;
 
     /**
+     * @notice Owner function to update the super token factory
+     * @param _newSuperTokenFactory Address of the super token factory
+     */
+    function updateSuperTokenFactory(address _newSuperTokenFactory) external;
+
+    /**
      * @notice Owner function to update the subscription handler contract reference
      * @param _newSubscriptionHandlerAddress Address of the new subscription contract
      */
@@ -119,15 +135,26 @@ interface IStreamController {
     /**
      * @notice The first function that streamers need to call to get started
      * @param streamerName String representation of what streamers want to be called
+     * @param socialTokenName Social token name
+     * @param socialTokenSymbol Social token symbol
      */
-    function registerAsStreamer(string memory streamerName) external;
+    function registerAsStreamer(
+        string memory streamerName,
+        string memory socialTokenName,
+        string memory socialTokenSymbol
+    ) external;
 
     /**
      * @notice The function to call to begin a stream, can only have one stream at a time
+     * @param streamName Name of the stream
      * @param streamId String of the stream
+     * @param perSecondStreamRate cost of the stream
      */
-    function startStream(string memory streamId, int96 perSecondStreamRate)
-        external;
+    function startStream(
+        string memory streamName,
+        string memory streamId,
+        int96 perSecondStreamRate
+    ) external;
 
     /**
      * @notice The function to call to end the active stream
@@ -138,6 +165,11 @@ interface IStreamController {
      * @notice The function to call to get back the currently active stream
      */
     function getMyActiveStream() external view returns (string memory);
+
+    /**
+     * @notice The function to call to get back the name of the currently active stream
+     */
+    function getMyActiveStreamName() external view returns (string memory);
 
     /**
      * @notice The function to call to get back the currently cost of the active stream
@@ -182,6 +214,16 @@ interface IStreamController {
      * @return streamId
      */
     function getWatcherStreamId(address streamerAddress)
+        external
+        view
+        returns (string memory);
+
+    /**
+     * @notice The function to call as a watcher to get back the name of the currently active stream
+     * @param streamerAddress Address of the streamer to watch
+     * @return streamId
+     */
+    function getWatcherStreamName(address streamerAddress)
         external
         view
         returns (string memory);

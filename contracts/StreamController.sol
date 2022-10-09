@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 // Local interfaces
+import "./SuperSocialToken.sol";
 import "../interfaces/IStreamController.sol";
 import "../interfaces/ISubscriptionHandler.sol";
 
@@ -15,12 +16,14 @@ contract StreamController is Ownable, Pausable, IStreamController {
 
     struct SteamerDetailsMapObject {
         uint256 numberOfStreams;
+        address socialTokenAddress;
         address streamerAddress;
         bool isActive;
         bool isStreaming;
         int96 activeStreamFlowRate;
         string streamerName;
         string activeStreamId;
+        string activeStreamName;
     }
 
     // // // // // // // // // // // // // // // // // // // //
@@ -30,8 +33,11 @@ contract StreamController is Ownable, Pausable, IStreamController {
     // Contract to handle subscriptions
     ISubscriptionHandler private _subscriptionHandler;
 
-    // The token address that will be streamed
+    // The payment token address that will be streamed
     address private _streamToken;
+
+    // Address of the factory contract
+    address private _superTokenFactory;
 
     address[] private _streamers;
 
@@ -55,8 +61,10 @@ contract StreamController is Ownable, Pausable, IStreamController {
     // CONSTRUCTOR
     // // // // // // // // // // // // // // // // // // // //
 
-    constructor(address _streamTokenAddress) {
+    constructor(address _streamTokenAddress, address _superTokenFactoryAddress)
+    {
         _streamToken = _streamTokenAddress;
+        _superTokenFactory = _superTokenFactoryAddress;
     }
 
     // // // // // // // // // // // // // // // // // // // //
@@ -166,6 +174,32 @@ contract StreamController is Ownable, Pausable, IStreamController {
     }
 
     /**
+     * @notice Owner function to update the super token factory
+     * @param _newSuperTokenFactory Address of the super token factory
+     */
+    function updateSuperTokenFactory(address _newSuperTokenFactory)
+        external
+        override
+        onlyOwner
+    {
+        _updateSuperTokenFactory(_newSuperTokenFactory);
+    }
+
+    /**
+     * @notice [INTERNAL] Owner function to update the super token factory
+     * @param _newSuperTokenFactory Address of the super token factory
+     */
+    function _updateSuperTokenFactory(address _newSuperTokenFactory) internal {
+        address oldSuperTokenFactoryAddress = _superTokenFactory;
+        _superTokenFactory = _newSuperTokenFactory;
+
+        emit UpdatedSuperTokenFactory(
+            oldSuperTokenFactoryAddress,
+            _newSuperTokenFactory
+        );
+    }
+
+    /**
      * @notice Owner function to update the subscription handler contract reference
      * @param _newSubscriptionHandlerAddress Address of the new subscription contract
      */
@@ -219,20 +253,29 @@ contract StreamController is Ownable, Pausable, IStreamController {
     /**
      * @notice The first function that streamers need to call to get started
      * @param streamerName String representation of what streamers want to be called
+     * @param socialTokenName Social token name
+     * @param socialTokenSymbol Social token symbol
      */
-    function registerAsStreamer(string memory streamerName)
-        external
-        override
-        whenNotPaused
-    {
-        _registerAsStreamer(streamerName);
+    function registerAsStreamer(
+        string memory streamerName,
+        string memory socialTokenName,
+        string memory socialTokenSymbol
+    ) external override whenNotPaused {
+        _registerAsStreamer(streamerName, socialTokenName, socialTokenSymbol);
     }
 
     /**
      * @notice [INTERNAL] The first function that streamers need to call to get started
      * @param streamerName String representation of what streamers want to be called
+     * @param socialTokenName Social token name
+     * @param socialTokenSymbol Social token symbol
+
      */
-    function _registerAsStreamer(string memory streamerName) internal {
+    function _registerAsStreamer(
+        string memory streamerName,
+        string memory socialTokenName,
+        string memory socialTokenSymbol
+    ) internal {
         // Set up the storage struct
         SteamerDetailsMapObject
             storage specificStreamerMapObj = _streamerAddressToDetails[
@@ -245,12 +288,31 @@ contract StreamController is Ownable, Pausable, IStreamController {
             "Streamer already registered"
         );
 
+        // Deploy a new super social token for the user
+        SuperSocialToken superSocialToken = new SuperSocialToken(_msgSender());
+
+        // Initilize this contract
+        superSocialToken.initialize(
+            // address factory,
+            _superTokenFactory,
+            // string memory name,
+            socialTokenName,
+            // string memory symbol,
+            socialTokenSymbol,
+            // uint256 initialSupply (10^20),
+            100 * 1000000000000000000,
+            // address receiver
+            _msgSender()
+        );
+
         // Set up the struct of the streamer details
+        specificStreamerMapObj.socialTokenAddress = address(superSocialToken);
         specificStreamerMapObj.streamerAddress = _msgSender();
         specificStreamerMapObj.streamerName = streamerName;
         specificStreamerMapObj.isActive = true;
         // isStreaming defaults to false
         // activeStreamId defaults to blank
+        // activeStreamName defaults to blank
         // activeStreamFlowRate defaults to 0
         // numberOfStreams defaults to 0
 
@@ -262,25 +324,35 @@ contract StreamController is Ownable, Pausable, IStreamController {
 
     /**
      * @notice The function to call to begin a stream, can only have one stream at a time
+     * @param streamName Name of the stream
      * @param streamId String of the stream
+     * @param perSecondStreamRate cost of the stream
      */
-    function startStream(string memory streamId, int96 perSecondStreamRate)
+    function startStream(
+        string memory streamName,
+        string memory streamId,
+        int96 perSecondStreamRate
+    )
         external
         override
         whenNotPaused
         onlyStreamer
         whenNotStreaming(_msgSender())
     {
-        _startStream(streamId, perSecondStreamRate);
+        _startStream(streamName, streamId, perSecondStreamRate);
     }
 
     /**
      * @notice [INTERNAL] The function to call to begin a stream, can only have one stream at a time
+     * @param streamName Name of the stream
      * @param streamId String of the stream
+     * @param perSecondStreamRate cost of the stream
      */
-    function _startStream(string memory streamId, int96 perSecondStreamRate)
-        internal
-    {
+    function _startStream(
+        string memory streamName,
+        string memory streamId,
+        int96 perSecondStreamRate
+    ) internal {
         // Update the storage struct streaming details
         SteamerDetailsMapObject
             storage specificStreamerMapObj = _streamerAddressToDetails[
@@ -289,6 +361,7 @@ contract StreamController is Ownable, Pausable, IStreamController {
 
         specificStreamerMapObj.isStreaming = true;
         specificStreamerMapObj.activeStreamId = streamId;
+        specificStreamerMapObj.activeStreamName = streamName;
         specificStreamerMapObj.activeStreamFlowRate = perSecondStreamRate;
         specificStreamerMapObj.numberOfStreams =
             specificStreamerMapObj.numberOfStreams +
@@ -335,6 +408,7 @@ contract StreamController is Ownable, Pausable, IStreamController {
             ];
 
         specificStreamerMapObj.isStreaming = false;
+        specificStreamerMapObj.activeStreamName = "";
         specificStreamerMapObj.activeStreamId = "";
         specificStreamerMapObj.activeStreamFlowRate = 0;
 
@@ -354,6 +428,21 @@ contract StreamController is Ownable, Pausable, IStreamController {
         returns (string memory)
     {
         return _getStreamerDetails(_msgSender()).activeStreamId;
+    }
+
+    /**
+     * @notice The function to call to get back the name of the currently active stream
+     */
+    function getMyActiveStreamName()
+        external
+        view
+        override
+        whenNotPaused
+        onlyStreamer
+        whenStreaming(_msgSender())
+        returns (string memory)
+    {
+        return _getStreamerDetails(_msgSender()).activeStreamName;
     }
 
     /**
@@ -553,18 +642,37 @@ contract StreamController is Ownable, Pausable, IStreamController {
         whenStreaming(streamerAddress)
         returns (string memory)
     {
-        return _getWatcherStreamId(streamerAddress, _msgSender());
+        return
+            _getWatcherStreamDetails(streamerAddress, _msgSender())
+                .activeStreamId;
     }
 
     /**
-     * @notice [INTERNAL] The function to call as a watcher to get back the currently active stream
+     * @notice The function to call as a watcher to get back the name of the currently active stream
+     * @param streamerAddress Address of the streamer to watch
+     */
+    function getWatcherStreamName(address streamerAddress)
+        external
+        view
+        override
+        whenNotPaused
+        whenStreaming(streamerAddress)
+        returns (string memory)
+    {
+        return
+            _getWatcherStreamDetails(streamerAddress, _msgSender())
+                .activeStreamName;
+    }
+
+    /**
+     * @notice [INTERNAL] The function to call as a watcher to get back the name of the currently active stream
      * @param streamerAddress Address of the streamer to watch
      * @param watcherAddress Address of the watcher of the stream
      */
-    function _getWatcherStreamId(
+    function _getWatcherStreamDetails(
         address streamerAddress,
         address watcherAddress
-    ) internal view returns (string memory) {
+    ) internal view returns (SteamerDetailsMapObject memory) {
         // The hash of the streamer with the watcher address as an index
         bytes32 streamerWatcherHash = _getStreamerWatcherHash(
             streamerAddress,
@@ -577,6 +685,6 @@ contract StreamController is Ownable, Pausable, IStreamController {
             "Not paying for the stream"
         );
 
-        return _getStreamerDetails(streamerAddress).activeStreamId;
+        return _getStreamerDetails(streamerAddress);
     }
 }
