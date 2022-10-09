@@ -582,6 +582,18 @@ contract StreamController is Ownable, Pausable, IStreamController {
             streamerAddress
         );
 
+        // Set the steam of social token
+        _subscriptionHandler.createSubscriptionFlow(
+            // address tokenAddress,
+            _getStreamerDetails(streamerAddress).socialTokenAddress,
+            // int96 flowRate,
+            _getStreamerDetails(streamerAddress).activeStreamFlowRate,
+            // address fromAddress,
+            streamerAddress,
+            // address toAddress
+            watcherAddress
+        );
+
         // Update that the watcher is paying
         _isWatcherPaying[streamerWatcherHash] = true;
 
@@ -620,6 +632,16 @@ contract StreamController is Ownable, Pausable, IStreamController {
             watcherAddress,
             // address toAddress
             streamerAddress
+        );
+
+        // Delete current flow of social token
+        _subscriptionHandler.deleteSubscriptionFlow(
+            // address tokenAddress,
+            _getStreamerDetails(streamerAddress).socialTokenAddress,
+            // address fromAddress,
+            streamerAddress,
+            // address toAddress
+            watcherAddress
         );
 
         // Update that the watcher isnt paying
