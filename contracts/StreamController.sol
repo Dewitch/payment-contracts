@@ -122,7 +122,7 @@ contract StreamController is Ownable, Pausable, IStreamController {
     function _getStreamerWatcherHash(
         address streamerAddress,
         address watcherAddress
-    ) internal view returns (bytes32) {
+    ) internal pure returns (bytes32) {
         return keccak256(abi.encodePacked(streamerAddress, watcherAddress));
     }
 

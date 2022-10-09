@@ -19,6 +19,18 @@ interface ISubscriptionHandler {
     );
 
     /**
+     * @notice Emitted when the stream host address has been changed
+     * @param owner The owner address that made this change
+     * @param oldHostAddress The old host address
+     * @param newHostAddress The new host address
+     */
+    event ChangedStreamHost(
+        address indexed owner,
+        address indexed oldHostAddress,
+        address indexed newHostAddress
+    );
+
+    /**
      * @notice Increase in the authorized flow rate of this contract for a given user
      * @param user The user that wants to allow the contract to stream
      * @param handler The contract that is allowed stream payment
@@ -77,6 +89,12 @@ interface ISubscriptionHandler {
      * @param _newController New controller account.
      */
     function changeController(address _newController) external;
+
+    /**
+     * @notice Recreate the cfa based on a new host address
+     * @param _newHostAddress New host address
+     */
+    function changeStreamHost(address _newHostAddress) external;
 
     // // // // // // // // // // // // // // // // // // // //
     // CONTROLLER FUNCTIONS

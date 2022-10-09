@@ -29,28 +29,15 @@ contract SubscriptionHandler is Ownable, Pausable, ISubscriptionHandler {
     // // // // // // // // // // // // // // // // // // // //
 
     address private _controller;
+    address private _streamHost;
 
     // // // // // // // // // // // // // // // // // // // //
     // CONSTRUCTOR
     // // // // // // // // // // // // // // // // // // // //
 
-    constructor(ISuperfluid host, address _newController) {
-        assert(address(host) != address(0));
+    constructor(address _hostAddress, address _newController) {
         _controller = _newController;
-
-        // Initialize CFA Library
-        cfaV1 = CFAv1Library.InitData(
-            host,
-            IConstantFlowAgreementV1(
-                address(
-                    host.getAgreementClass(
-                        keccak256(
-                            "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
-                        )
-                    )
-                )
-            )
-        );
+        _changeStreamHost(_hostAddress);
     }
 
     // // // // // // // // // // // // // // // // // // // //
@@ -113,6 +100,45 @@ contract SubscriptionHandler is Ownable, Pausable, ISubscriptionHandler {
         _controller = _newController;
 
         emit ChangedController(_msgSender(), _oldController, _newController);
+    }
+
+    /**
+     * @notice Recreate the cfa based on a new host address
+     * @param _newHostAddress New host address
+     */
+    function changeStreamHost(address _newHostAddress)
+        external
+        override
+        onlyOwner
+    {
+        _changeStreamHost(_newHostAddress);
+    }
+
+    /**
+     * @notice Recreate the cfa based on a new host address
+     * @param _newHostAddress New host address
+     */
+    function _changeStreamHost(address _newHostAddress) internal {
+        assert(_newHostAddress != address(0));
+
+        address _oldHostAddress = _streamHost;
+        _streamHost = _newHostAddress;
+
+        // Initialize CFA Library
+        cfaV1 = CFAv1Library.InitData(
+            ISuperfluid(_newHostAddress),
+            IConstantFlowAgreementV1(
+                address(
+                    ISuperfluid(_newHostAddress).getAgreementClass(
+                        keccak256(
+                            "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
+                        )
+                    )
+                )
+            )
+        );
+
+        emit ChangedStreamHost(_msgSender(), _oldHostAddress, _newHostAddress);
     }
 
     // // // // // // // // // // // // // // // // // // // //
