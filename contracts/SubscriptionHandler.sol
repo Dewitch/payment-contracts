@@ -146,35 +146,6 @@ contract SubscriptionHandler is Ownable, Pausable, ISubscriptionHandler {
     // // // // // // // // // // // // // // // // // // // //
 
     /**
-     * @dev Allow the user to let the contract create inifinite streams of value on their behalf
-     * @param tokenAddress Super token address
-     */
-    function authorizeFullFlow(address tokenAddress)
-        external
-        override
-        whenNotPaused
-    {
-        _authorizeFullFlow(tokenAddress);
-    }
-
-    /**
-     * @dev [INTERNAL] Allow the user to let the contract create inifinite streams of value on their behalf
-     * @param tokenAddress Super token address
-     */
-    function _authorizeFullFlow(address tokenAddress) internal {
-        cfaV1.authorizeFlowOperatorWithFullControl(
-            address(this),
-            ISuperfluidToken(tokenAddress)
-        );
-
-        emit AuthorizedFullFlow(_msgSender(), address(this), tokenAddress);
-    }
-
-    // // // // // // // // // // // // // // // // // // // //
-    // BASE FUNCTIONS
-    // // // // // // // // // // // // // // // // // // // //
-
-    /**
      * @notice Create a stream into the streamer.
      * @dev This requires the caller to be the controller contract
      * @param tokenAddress Token to stream.

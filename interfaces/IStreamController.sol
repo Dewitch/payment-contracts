@@ -128,6 +128,21 @@ interface IStreamController {
      */
     function streamers() external view returns (address[] memory);
 
+    /**
+     * @notice View function to get the stream payment token
+     */
+    function streamToken() external view returns (address);
+
+    /**
+     * @notice View function to get the super token factory
+     */
+    function superTokenFactory() external view returns (address);
+
+    /**
+     * @notice View function to get the subsctription handler
+     */
+    function subscriptionHandler() external view returns (address);
+
     // // // // // // // // // // // // // // // // // // // //
     // STREAMER FUNCTIONS
     // // // // // // // // // // // // // // // // // // // //

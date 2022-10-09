@@ -31,18 +31,6 @@ interface ISubscriptionHandler {
     );
 
     /**
-     * @notice Increase in the authorized flow rate of this contract for a given user
-     * @param user The user that wants to allow the contract to stream
-     * @param handler The contract that is allowed stream payment
-     * @param token The token to allow streaming
-     */
-    event AuthorizedFullFlow(
-        address indexed user,
-        address indexed handler,
-        address indexed token
-    );
-
-    /**
      * @notice Emitted when a subscription has been created
      * @param operator Controller or owner address that made the update
      * @param fromAddress The address that the stream is coming from
@@ -98,16 +86,6 @@ interface ISubscriptionHandler {
 
     // // // // // // // // // // // // // // // // // // // //
     // CONTROLLER FUNCTIONS
-    // // // // // // // // // // // // // // // // // // // //
-
-    /**
-     * @dev Allow the user to let the contract create inifinite streams of value on their behalf
-     * @param tokenAddress Super token address
-     */
-    function authorizeFullFlow(address tokenAddress) external;
-
-    // // // // // // // // // // // // // // // // // // // //
-    // BASE FUNCTIONS
     // // // // // // // // // // // // // // // // // // // //
 
     /**

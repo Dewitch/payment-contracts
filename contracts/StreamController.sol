@@ -246,6 +246,45 @@ contract StreamController is Ownable, Pausable, IStreamController {
         return _streamers;
     }
 
+    /**
+     * @notice View function to get the stream payment token
+     */
+    function streamToken()
+        external
+        view
+        override
+        whenNotPaused
+        returns (address)
+    {
+        return _streamToken;
+    }
+
+    /**
+     * @notice View function to get the super token factory
+     */
+    function superTokenFactory()
+        external
+        view
+        override
+        whenNotPaused
+        returns (address)
+    {
+        return _superTokenFactory;
+    }
+
+    /**
+     * @notice View function to get the subsctription handler
+     */
+    function subscriptionHandler()
+        external
+        view
+        override
+        whenNotPaused
+        returns (address)
+    {
+        return address(_subscriptionHandler);
+    }
+
     // // // // // // // // // // // // // // // // // // // //
     // STREAMER FUNCTIONS
     // // // // // // // // // // // // // // // // // // // //
